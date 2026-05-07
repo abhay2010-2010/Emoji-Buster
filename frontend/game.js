@@ -303,3 +303,4 @@ window.onload = function onLoad() {
     emojiBusterGame.context.imageSmoothingEnabled = false;
   }
 };
+
