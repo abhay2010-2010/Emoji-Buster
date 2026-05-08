@@ -1,9 +1,11 @@
 const express = require("express");
-const router = express.Router();
+const scoreRouters = express.Router();
 
-const authMiddleware = require("../middleware/authMiddleware");
+const authMiddleware = require("../middlewares/authMiddleware");
 const { submitScore } = require("../controllers/scoreController");
 
-router.post("/score", authMiddleware, submitScore);
 
-module.exports = router;
+
+scoreRouters.post("/score", authMiddleware, submitScore);
+
+module.exports = scoreRouters;
