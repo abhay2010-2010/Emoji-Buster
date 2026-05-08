@@ -1,11 +1,10 @@
 const express = require("express");
-const router = express.Router();
+const leaderboardRouters = express.Router();
 
-const authMiddleware = require("../middleware/authMiddleware");
-const {
-  getLeaderboard
-} = require("../controllers/leaderboardController");
 
-router.get("/leaderboard", authMiddleware, getLeaderboard);
+const authMiddleware = require("../middlewares/authMiddleware");
+const { getLeaderboard } = require("../controllers/leaderboardController");
 
-module.exports = router;
+leaderboardRouters.get("/leaderboard", authMiddleware, getLeaderboard);
+
+module.exports = leaderboardRouters;
