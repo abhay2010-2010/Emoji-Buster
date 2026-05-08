@@ -21,12 +21,13 @@
         gtag('config', '');
         var ANALYTICS_ENABLED = false;
     </script>
-    
+
     <style type="text/css">
         body {
-            background: #000000;
-            padding: 0px;
-            margin: 0px;
+            margin: 0;
+            background: #101419;
+            overflow: hidden;
+            font-family: Arial;
         }
 
         canvas {
@@ -37,9 +38,65 @@
             left: 50%;
             transform: translate(-50%, -50%);
         }
+
+
+
+        #login-container {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        .login-box {
+            background: #1d232b;
+            padding: 30px;
+            border-radius: 12px;
+            width: 300px;
+            text-align: center;
+        }
+
+        .login-box h2 {
+            color: white;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 8px;
+        }
+
+        .login-box button {
+            width: 100%;
+            margin-top: 15px;
+            padding: 12px;
+            border: none;
+            background: #d4ff71;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
     </style>
     <link rel="stylesheet" type="text/css" href="fonts/fontLoader.css">
     <script src="phaser.js"></script>
+
+    <div id="login-container">
+        <div class="login-box">
+            <h2>Emoji Buster Login</h2>
+
+            <input type="text" id="username" placeholder="Enter Username" />
+
+            <input type="text" id="mobile" placeholder="Enter Mobile Number" />
+
+            <button onclick="loginUser()">Start Game</button>
+        </div>
+    </div>
+
     <script src="game.js"></script>
 </head>
 
