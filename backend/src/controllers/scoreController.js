@@ -2,6 +2,9 @@ const Score = require("../models/Score");
 
 const submitScore = async (req, res) => {
   try {
+
+    console.log(req.body);
+console.log(req.user);
     const { game_id, level } = req.body;
 
     if (!game_id || level === undefined) {
