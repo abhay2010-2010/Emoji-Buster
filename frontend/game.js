@@ -5,76 +5,25 @@ const BASE_HITS_TO_CLEAR = 6;
 const KNIFE_SPEED = 520;
 const KNIFE_LENGTH = 110;
 const KNIFE_WIDTH = 10;
-const KNIFE_MIN_ANGLE_GAP = 16;
+const KNIFE_MIN_ANGLE_GAP = 8;
 
-const EMOJIS = [
-  "😀",
-  "😎",
-  "🤖",
-  "👻",
-  "🔥",
-  "🍕",
-  "🚀",
-  "🧠",
-  "🎯",
-  "💎",
-];
-
-const API_BASE_URL = "http://localhost:5000/api";
-
-// storing token from backend
-let authToken = localStorage.getItem("token");
+const EMOJIS = ["😀", "😎", "🤖", "👻", "🔥", "🍕", "🚀", "🧠", "🎯", "💎"];
 
 let emojiBusterGame;
 
-// ====================== API FUNCTIONS ======================
+const API_BASE_URL = "http://localhost:5000/api";
 
-// Login API
-async function loginUser() {
-  try {
-    const username = document.getElementById("username").value;
-    const mobile_number = document.getElementById("mobile").value;
+let authToken = localStorage.getItem("token");
 
-    if (!username || !mobile_number) {
-      alert("Please fill all fields");
-      return;
-    }
-
-    const response = await fetch(`${API_BASE_URL}/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        username,
-        mobile_number,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (data.success) {
-      localStorage.setItem("token", data.token);
-
-      authToken = data.token;
-
-      document.getElementById("login-container").style.display = "none";
-
-      alert("Login Successful");
-    } else {
-      alert(data.message);
-    }
-  } catch (error) {
-    console.log(error);
-
-    alert("Login Failed");
-  }
-}
-
-// Submit score API
 async function submitScore(level) {
   try {
-    if (!authToken) return;
+
+    console.log("API CALLED");
+
+    if (!authToken) {
+      console.log("NO TOKEN FOUND");
+      return;
+    }
 
     const response = await fetch(`${API_BASE_URL}/score`, {
       method: "POST",
@@ -90,39 +39,49 @@ async function submitScore(level) {
 
     const data = await response.json();
 
-    console.log("Score Submitted:", data);
+    console.log("SCORE RESPONSE:", data);
+
   } catch (error) {
     console.log("Submit Score Error:", error);
   }
 }
 
-// Fetch leaderboard API
-async function fetchLeaderboard() {
-  try {
-    if (!authToken) return null;
+async function getLeaderboard() {
 
-    const response = await fetch(
+  try {
+
+    if (!authToken) {
+      console.log("NO TOKEN FOR LEADERBOARD");
+      return [];
+    }
+
+    const res = await fetch(
       `${API_BASE_URL}/leaderboard?game_id=1`,
       {
         method: "GET",
+
         headers: {
+          "Content-Type": "application/json",
           Authorization: `Bearer ${authToken}`,
         },
       }
     );
 
-    const data = await response.json();
+    const data = await res.json();
 
-    console.log("Leaderboard:", data);
+    console.log("LEADERBOARD:", data);
 
-    return data;
-  } catch (error) {
-    console.log("Leaderboard Error:", error);
-    return null;
+    // IMPORTANT FIX
+    return data.top_players || [];
+
+  } catch (err) {
+
+    console.log("Leaderboard Error:", err);
+
+    return [];
   }
 }
 
-//  GAME CLASS 
 
 class EmojiBusterScene extends Phaser.Scene {
   constructor() {
@@ -146,52 +105,56 @@ class EmojiBusterScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    this.hudText = this.add
-      .text(GAME_WIDTH / 2, 86, "", {
-        fontFamily: "Arial",
-        fontSize: "20px",
-        color: "#d4ff71",
-      })
-      .setOrigin(0.5);
+this.hudText = this.add
+  .text(GAME_WIDTH / 2, 86, "", {
+    fontFamily: "Arial",
+    fontSize: "20px",
+    color: "#d4ff71",
+  })
+  .setOrigin(0.5);
 
-    this.messageText = this.add
-      .text(GAME_WIDTH / 2, GAME_HEIGHT - 140, "", {
-        fontFamily: "Arial",
-        fontSize: "22px",
-        color: "#ffffff",
-        align: "center",
-      })
-      .setOrigin(0.5)
-      .setAlpha(0);
+this.messageText = this.add
+  .text(GAME_WIDTH / 2, GAME_HEIGHT - 140, "", {
+    fontFamily: "Arial",
+    fontSize: "22px",
+    color: "#ffffff",
+    align: "center",
+  })
+  .setOrigin(0.5)
+  .setAlpha(0);
+
+// LEADERBOARD TITLE
+this.leaderboardTitle = this.add
+  .text(GAME_WIDTH / 2, 470, "🏆 Leaderboard", {
+    fontFamily: "Arial",
+    fontSize: "24px",
+    color: "#ffcc66",
+  })
+  .setOrigin(0.5);
+
+// LEADERBOARD TEXT
+this.leaderboardText = this.add
+  .text(GAME_WIDTH / 2, 510, "Loading...", {
+    fontFamily: "Arial",
+    fontSize: "18px",
+    color: "#ffffff",
+    align: "center",
+    lineSpacing: 8,
+  })
+  .setOrigin(0.5);
+
 
     this.throwKnife = this.add
-      .rectangle(
-        GAME_WIDTH / 2,
-        GAME_HEIGHT - 90,
-        KNIFE_WIDTH,
-        KNIFE_LENGTH,
-        0xffffff
-      )
+      .rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 90, KNIFE_WIDTH, KNIFE_LENGTH, 0xffffff)
       .setOrigin(0.5, 1);
 
     this.throwKnifeTip = this.add
-      .triangle(
-        GAME_WIDTH / 2,
-        GAME_HEIGHT - 90 - KNIFE_LENGTH,
-        0,
-        12,
-        8,
-        0,
-        16,
-        12,
-        0xffffff
-      )
+      .triangle(GAME_WIDTH / 2, GAME_HEIGHT - 90 - KNIFE_LENGTH, 0, 12, 8, 0, 16, 12, 0xffffff)
       .setOrigin(0.5, 1);
 
     this.emoji = this.add
       .text(GAME_WIDTH / 2, 250, EMOJIS[0], {
-        fontFamily:
-          "Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif",
+        fontFamily: "Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif",
         fontSize: "120px",
       })
       .setOrigin(0.5);
@@ -226,18 +189,18 @@ class EmojiBusterScene extends Phaser.Scene {
 
     this.updateHud();
     this.showRoundMessage("Tap to throw!");
+    this.showLeaderboard();
+  
   }
 
   update(_, deltaMs) {
     if (this.isRoundOver) return;
 
     const dt = deltaMs / 1000;
-
     this.currentRotation += this.rotationSpeed * dt;
     this.emoji.angle = this.currentRotation;
 
     this.emoji.y += this.emojiDirection * this.emojiFloatSpeed * dt;
-
     if (this.emoji.y > this.emojiBaseY + 24) {
       this.emoji.y = this.emojiBaseY + 24;
       this.emojiDirection = -1;
@@ -245,20 +208,14 @@ class EmojiBusterScene extends Phaser.Scene {
       this.emoji.y = this.emojiBaseY - 24;
       this.emojiDirection = 1;
     }
-
     this.targetCenter.y = this.emoji.y + 20;
 
     for (const knife of this.attachedKnives) {
       knife.orbitAngle += this.rotationSpeed * dt;
-
       const rad = Phaser.Math.DegToRad(knife.orbitAngle + 90);
 
-      knife.body.x =
-        this.targetCenter.x + this.targetRadius * Math.cos(rad);
-
-      knife.body.y =
-        this.targetCenter.y + this.targetRadius * Math.sin(rad);
-
+      knife.body.x = this.targetCenter.x + this.targetRadius * Math.cos(rad);
+      knife.body.y = this.targetCenter.y + this.targetRadius * Math.sin(rad);
       knife.body.angle = knife.orbitAngle;
 
       knife.tip.x = knife.body.x;
@@ -268,40 +225,68 @@ class EmojiBusterScene extends Phaser.Scene {
   }
 
   tryThrowKnife() {
-    if (!this.canThrow || this.isRoundOver) return;
+
+    if (!this.canThrow || this.isRoundOver) {
+      return;
+    }
 
     this.canThrow = false;
 
-    const startY = this.throwKnife.y;
-    const destinationY = this.targetCenter.y + this.targetRadius;
+    // SAVE ORIGINAL POSITION
+    const startX = GAME_WIDTH / 2;
+    const startY = GAME_HEIGHT - 90;
+
+    const destinationY =
+      this.targetCenter.y + this.targetRadius;
 
     this.tweens.add({
-      targets: [this.throwKnife, this.throwKnifeTip],
+
+      targets: [
+        this.throwKnife,
+        this.throwKnifeTip
+      ],
+
       y: destinationY,
+
       duration: KNIFE_SPEED,
+
       ease: "Linear",
 
       onComplete: () => {
-        const impactAngle = Phaser.Math.Wrap(
-          this.currentRotation,
-          0,
-          360
-        );
+
+        const impactAngle =
+          Phaser.Math.Wrap(
+            this.currentRotation,
+            0,
+            360
+          );
 
         if (this.willCollide(impactAngle)) {
+
           this.onMiss();
+
         } else {
+
           this.onHit(impactAngle);
         }
 
+        // RESET KNIFE POSITION
+        this.throwKnife.x = startX;
         this.throwKnife.y = startY;
-        this.throwKnifeTip.y = startY - KNIFE_LENGTH;
+        this.throwKnife.angle = 0;
+
+        this.throwKnifeTip.x = startX;
+        this.throwKnifeTip.y =
+          startY - KNIFE_LENGTH;
+        this.throwKnifeTip.angle = 0;
       },
     });
   }
 
   willCollide(testAngle) {
+
     for (const knife of this.attachedKnives) {
+
       const diff = Math.abs(
         Phaser.Math.Angle.ShortestBetween(
           testAngle,
@@ -309,7 +294,12 @@ class EmojiBusterScene extends Phaser.Scene {
         )
       );
 
-      if (diff < KNIFE_MIN_ANGLE_GAP) return true;
+      console.log("ANGLE DIFF:", diff);
+
+      // More balanced collision detection
+      if (diff < 8) {
+        return true;
+      }
     }
 
     return false;
@@ -320,37 +310,16 @@ class EmojiBusterScene extends Phaser.Scene {
     this.score += 10;
 
     const body = this.add
-      .rectangle(
-        this.targetCenter.x,
-        this.targetCenter.y + this.targetRadius,
-        KNIFE_WIDTH,
-        KNIFE_LENGTH,
-        0xffffff
-      )
+      .rectangle(this.targetCenter.x, this.targetCenter.y + this.targetRadius, KNIFE_WIDTH, KNIFE_LENGTH, 0xffffff)
       .setOrigin(0.5, 1);
-
     const tip = this.add
-      .triangle(
-        this.targetCenter.x,
-        this.targetCenter.y + this.targetRadius - KNIFE_LENGTH,
-        0,
-        12,
-        8,
-        0,
-        16,
-        12,
-        0xffffff
-      )
+      .triangle(this.targetCenter.x, this.targetCenter.y + this.targetRadius - KNIFE_LENGTH, 0, 12, 8, 0, 16, 12, 0xffffff)
       .setOrigin(0.5, 1);
 
     body.angle = impactAngle;
     tip.angle = impactAngle;
 
-    this.attachedKnives.push({
-      body,
-      tip,
-      orbitAngle: impactAngle,
-    });
+    this.attachedKnives.push({ body, tip, orbitAngle: impactAngle });
 
     if (this.hitsDone >= this.hitsRequired) {
       this.clearLevel();
@@ -362,34 +331,47 @@ class EmojiBusterScene extends Phaser.Scene {
   }
 
   onMiss() {
-    this.lives -= 1;
 
+    this.lives -= 1;
     this.updateHud();
+
+    // SAVE START POSITION
+    const startY = this.scale.height - 120;
 
     this.tweens.add({
       targets: [this.throwKnife, this.throwKnifeTip],
+
       x: this.throwKnife.x + 120,
       y: GAME_HEIGHT + 120,
       angle: 260,
+
       duration: 420,
       ease: "Cubic.easeIn",
 
       onComplete: () => {
+
+        const impactAngle = Phaser.Math.Wrap(
+          this.currentRotation,
+          0,
+          360
+        );
+
+        // TEMPORARY FORCE HIT
+        this.onHit(impactAngle);
+
+        // RESET KNIFE POSITION
         this.throwKnife.x = GAME_WIDTH / 2;
-        this.throwKnife.y = GAME_HEIGHT - 90;
+        this.throwKnife.y = startY;
+
         this.throwKnife.angle = 0;
 
+        // RESET KNIFE TIP POSITION
         this.throwKnifeTip.x = GAME_WIDTH / 2;
-        this.throwKnifeTip.y =
-          GAME_HEIGHT - 90 - KNIFE_LENGTH;
-        this.throwKnifeTip.angle = 0;
 
-        if (this.lives <= 0) {
-          this.gameOver();
-        } else {
-          this.canThrow = true;
-          this.showRoundMessage("Miss! Try again");
-        }
+        this.throwKnifeTip.y =
+          startY - KNIFE_LENGTH;
+
+        this.throwKnifeTip.angle = 0;
       },
     });
   }
@@ -397,7 +379,6 @@ class EmojiBusterScene extends Phaser.Scene {
   clearLevel() {
     this.isRoundOver = true;
     this.canThrow = false;
-
     this.showRoundMessage("Level cleared!");
 
     this.tweens.add({
@@ -407,86 +388,39 @@ class EmojiBusterScene extends Phaser.Scene {
       duration: 220,
       yoyo: true,
       repeat: 2,
-
       onComplete: async () => {
         for (const knife of this.attachedKnives) {
           knife.body.destroy();
           knife.tip.destroy();
         }
-
         this.attachedKnives = [];
 
         this.level += 1;
 
-        // submit score to backend
-        await submitScore(this.level);
+        console.log("LEVEL CLEARED");
+
+        submitScore(this.level);
+
+        this.showLeaderboard();
 
         this.hitsDone = 0;
-
-        this.hitsRequired =
-          BASE_HITS_TO_CLEAR + Math.min(this.level - 1, 10);
-
-        this.rotationSpeed = Phaser.Math.Clamp(
-          this.rotationSpeed + 16,
-          120,
-          300
-        );
-
-        this.emoji.setText(
-          EMOJIS[(this.level - 1) % EMOJIS.length]
-        );
+        this.hitsRequired = BASE_HITS_TO_CLEAR + Math.min(this.level - 1, 10);
+        this.rotationSpeed = Phaser.Math.Clamp(this.rotationSpeed + 16, 120, 300);
+        this.emoji.setText(EMOJIS[(this.level - 1) % EMOJIS.length]);
 
         this.isRoundOver = false;
         this.canThrow = true;
-
         this.updateHud();
-
         this.showRoundMessage("Next level!");
       },
     });
   }
 
-  async gameOver() {
+  gameOver() {
     this.isRoundOver = true;
     this.canThrow = false;
-
     this.showRoundMessage("Game Over");
-
     this.restartButton.setVisible(true);
-
-    // fetch leaderboard
-    const leaderboardData = await fetchLeaderboard();
-
-    if (leaderboardData && leaderboardData.success) {
-      let leaderboardText = "🏆 TOP PLAYERS\n\n";
-
-      leaderboardData.top_players.forEach((player) => {
-        leaderboardText += `#${player.rank} ${player.username} - Level ${player.level}\n`;
-      });
-
-      if (leaderboardData.current_user) {
-        leaderboardText += `\nYOUR RANK: #${leaderboardData.current_user.rank}`;
-      }
-
-      this.add
-        .text(
-          GAME_WIDTH / 2,
-          GAME_HEIGHT / 2 + 100,
-          leaderboardText,
-          {
-            fontFamily: "Arial",
-            fontSize: "18px",
-            color: "#ffffff",
-            align: "center",
-            backgroundColor: "#000000",
-            padding: {
-              x: 20,
-              y: 20,
-            },
-          }
-        )
-        .setOrigin(0.5);
-    }
   }
 
   restartGame() {
@@ -501,11 +435,8 @@ class EmojiBusterScene extends Phaser.Scene {
 
   showRoundMessage(text) {
     this.messageText.setText(text);
-
     this.tweens.killTweensOf(this.messageText);
-
     this.messageText.alpha = 1;
-
     this.tweens.add({
       targets: this.messageText,
       alpha: 0,
@@ -513,9 +444,89 @@ class EmojiBusterScene extends Phaser.Scene {
       delay: 350,
     });
   }
+
+  async showLeaderboard() {
+
+  const players = await getLeaderboard();
+
+  if (!players.length) {
+
+    this.leaderboardText.setText(
+      "Failed to load leaderboard"
+    );
+
+    this.leaderboardText.setVisible(true);
+
+    return;
+  }
+
+  
+  let text = "🏆 LEADERBOARD 🏆\n\n";
+
+  players.forEach((p, i) => {
+
+    text += `${i + 1}. ${p.username} - Level ${p.highest_level}\n`;
+
+  });
+
+  this.leaderboardText.setText(text);
+
+  this.leaderboardText.setVisible(true);
+
+  this.time.delayedCall(4000, () => {
+
+    this.leaderboardText.setVisible(false);
+
+  });
+}
 }
 
-//  GAME LOAD 
+async function loginUser() {
+  try {
+
+    const username =
+      document.getElementById("username").value;
+
+    const mobile_number =
+      document.getElementById("mobile").value;
+
+    const response = await fetch(
+      `${API_BASE_URL}/login`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          mobile_number,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    console.log(data);
+
+    if (data.success) {
+
+      localStorage.setItem("token", data.token);
+
+      authToken = data.token;
+
+      document.getElementById(
+        "login-container"
+      ).style.display = "none";
+
+      alert("Login Success");
+    }
+
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+
 
 window.onload = function onLoad() {
   const config = {
@@ -526,22 +537,17 @@ window.onload = function onLoad() {
     pixelArt: true,
     antialias: false,
     roundPixels: true,
-
     scene: [EmojiBusterScene],
-
     scale: {
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH,
     },
   };
 
-  // show login if token missing
   if (!authToken) {
-    document.getElementById("login-container").style.display =
-      "flex";
+    document.getElementById("login-container").style.display = "flex";
   } else {
-    document.getElementById("login-container").style.display =
-      "none";
+    document.getElementById("login-container").style.display = "none";
   }
 
   emojiBusterGame = new Phaser.Game(config);
@@ -550,8 +556,7 @@ window.onload = function onLoad() {
     emojiBusterGame.canvas.style.imageRendering = "pixelated";
     emojiBusterGame.canvas.style.touchAction = "none";
   }
-
   if (emojiBusterGame.context) {
     emojiBusterGame.context.imageSmoothingEnabled = false;
   }
-};
+};  
