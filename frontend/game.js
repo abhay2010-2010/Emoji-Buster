@@ -88,6 +88,57 @@ class EmojiBusterScene extends Phaser.Scene {
     super("EmojiBusterScene");
   }
 
+
+
+ preload() {
+
+  // SOUNDS
+  this.load.audio("swosh", "sounds/swoosh.mp3");
+
+  this.load.audio("knifeHit", "sounds/knifeHit.mp3");
+
+  this.load.audio("knifeMiss", "sounds/knifeMiss.mp3");
+
+  this.load.audio("covidBurst", "sounds/covidBurst.mp3");
+
+  this.load.audio("knifeWin", "sounds/knifeWin.mp3");
+
+
+  // PNG ASSETS
+  this.load.image("background", "assets/background.png");
+
+  this.load.image("logo", "assets/logo.png");
+
+  this.load.image("knife", "assets/knife.png");
+
+  this.load.image("targets", "assets/targets.png");
+
+  this.load.image("playButton", "assets/playButton.png");
+
+  this.load.image("replayButton", "assets/replayButton.png");
+
+  this.load.image("heart", "assets/heart.png");
+
+  this.load.image("heartEmpty", "assets/heartEmpty.png");
+
+  this.load.image("loading", "assets/loading.png");
+
+  this.load.image("socialDistancing", "assets/socialDistancing.png");
+
+  this.load.image("solitaire", "assets/solitaire.png");
+
+  this.load.image("knifeMarketOn", "assets/knifeMarkerOn.png");
+
+  this.load.image("knifeMarketOff", "assets/knifeMarkerOff.png");
+
+  this.load.image("albuLogo", "assets/albuLogo.png");
+
+  this.load.image("second", "assets/2nd.png");
+
+  this.load.image("favi", "assets/favi.png");
+}
+
+
   create() {
     this.level = 1;
     this.score = 0;
@@ -95,69 +146,82 @@ class EmojiBusterScene extends Phaser.Scene {
     this.canThrow = true;
     this.isRoundOver = false;
 
-    this.cameras.main.setBackgroundColor("#101419");
+    this.swoshSound = this.sound.add("swosh");
 
-    this.titleText = this.add
-      .text(GAME_WIDTH / 2, 36, "Emoji Buster", {
+    this.hitSound = this.sound.add("knifeHit");
+
+    this.missSound = this.sound.add("knifeMiss");
+
+    this.burstSound = this.sound.add("covidBurst");
+
+    this.winSound = this.sound.add("knifeWin");
+
+    this.add.image(
+  GAME_WIDTH / 2,
+  GAME_HEIGHT / 2,
+  "background"
+).setDisplaySize(GAME_WIDTH, GAME_HEIGHT);
+
+    this.add.image(
+  GAME_WIDTH / 2,
+  60,
+  "logo"
+).setScale(0.4);
+
+    this.hudText = this.add
+      .text(GAME_WIDTH / 2, 86, "", {
         fontFamily: "Arial",
-        fontSize: "34px",
+        fontSize: "20px",
+        color: "#d4ff71",
+      })
+      .setOrigin(0.5);
+
+    this.messageText = this.add
+      .text(GAME_WIDTH / 2, GAME_HEIGHT - 140, "", {
+        fontFamily: "Arial",
+        fontSize: "22px",
         color: "#ffffff",
+        align: "center",
+      })
+      .setOrigin(0.5)
+      .setAlpha(0);
+
+    // LEADERBOARD TITLE
+    this.leaderboardTitle = this.add
+      .text(GAME_WIDTH / 2, 470, "🏆 Leaderboard", {
+        fontFamily: "Arial",
+        fontSize: "24px",
+        color: "#ffcc66",
       })
       .setOrigin(0.5);
 
-this.hudText = this.add
-  .text(GAME_WIDTH / 2, 86, "", {
-    fontFamily: "Arial",
-    fontSize: "20px",
-    color: "#d4ff71",
-  })
-  .setOrigin(0.5);
-
-this.messageText = this.add
-  .text(GAME_WIDTH / 2, GAME_HEIGHT - 140, "", {
-    fontFamily: "Arial",
-    fontSize: "22px",
-    color: "#ffffff",
-    align: "center",
-  })
-  .setOrigin(0.5)
-  .setAlpha(0);
-
-// LEADERBOARD TITLE
-this.leaderboardTitle = this.add
-  .text(GAME_WIDTH / 2, 470, "🏆 Leaderboard", {
-    fontFamily: "Arial",
-    fontSize: "24px",
-    color: "#ffcc66",
-  })
-  .setOrigin(0.5);
-
-// LEADERBOARD TEXT
-this.leaderboardText = this.add
-  .text(GAME_WIDTH / 2, 510, "Loading...", {
-    fontFamily: "Arial",
-    fontSize: "18px",
-    color: "#ffffff",
-    align: "center",
-    lineSpacing: 8,
-  })
-  .setOrigin(0.5);
-
-
-    this.throwKnife = this.add
-      .rectangle(GAME_WIDTH / 2, GAME_HEIGHT - 90, KNIFE_WIDTH, KNIFE_LENGTH, 0xffffff)
-      .setOrigin(0.5, 1);
-
-    this.throwKnifeTip = this.add
-      .triangle(GAME_WIDTH / 2, GAME_HEIGHT - 90 - KNIFE_LENGTH, 0, 12, 8, 0, 16, 12, 0xffffff)
-      .setOrigin(0.5, 1);
-
-    this.emoji = this.add
-      .text(GAME_WIDTH / 2, 250, EMOJIS[0], {
-        fontFamily: "Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji, sans-serif",
-        fontSize: "120px",
+    // LEADERBOARD TEXT
+    this.leaderboardText = this.add
+      .text(GAME_WIDTH / 2, 510, "Loading...", {
+        fontFamily: "Arial",
+        fontSize: "18px",
+        color: "#ffffff",
+        align: "center",
+        lineSpacing: 8,
       })
       .setOrigin(0.5);
+
+
+    this.throwKnife = this.add.image(
+  GAME_WIDTH / 2,
+  GAME_HEIGHT - 90,
+  "knife"
+);
+
+this.throwKnife.setScale(0.25);
+
+    this.emoji = this.add.image(
+  GAME_WIDTH / 2,
+  250,
+  "targets"
+);
+
+this.emoji.setScale(0.45);
 
     this.targetCenter = new Phaser.Math.Vector2(GAME_WIDTH / 2, 270);
     this.targetRadius = 82;
@@ -190,7 +254,7 @@ this.leaderboardText = this.add
     this.updateHud();
     this.showRoundMessage("Tap to throw!");
     this.showLeaderboard();
-  
+
   }
 
   update(_, deltaMs) {
@@ -238,7 +302,7 @@ this.leaderboardText = this.add
 
     const destinationY =
       this.targetCenter.y + this.targetRadius;
-
+    this.swoshSound.play();
     this.tweens.add({
 
       targets: [
@@ -306,6 +370,7 @@ this.leaderboardText = this.add
   }
 
   onHit(impactAngle) {
+    this.hitSound.play();
     this.hitsDone += 1;
     this.score += 10;
 
@@ -332,9 +397,9 @@ this.leaderboardText = this.add
 
   onMiss() {
 
+    this.missSound.play();
     this.lives -= 1;
     this.updateHud();
-
     // SAVE START POSITION
     const startY = this.scale.height - 120;
 
@@ -380,7 +445,7 @@ this.leaderboardText = this.add
     this.isRoundOver = true;
     this.canThrow = false;
     this.showRoundMessage("Level cleared!");
-
+    this.burstSound.play();
     this.tweens.add({
       targets: this.emoji,
       scaleX: 1.18,
@@ -398,7 +463,7 @@ this.leaderboardText = this.add
         this.level += 1;
 
         console.log("LEVEL CLEARED");
-
+        this.winSound.play();
         submitScore(this.level);
 
         this.showLeaderboard();
@@ -413,6 +478,7 @@ this.leaderboardText = this.add
         this.updateHud();
         this.showRoundMessage("Next level!");
       },
+
     });
   }
 
@@ -447,38 +513,38 @@ this.leaderboardText = this.add
 
   async showLeaderboard() {
 
-  const players = await getLeaderboard();
+    const players = await getLeaderboard();
 
-  if (!players.length) {
+    if (!players.length) {
 
-    this.leaderboardText.setText(
-      "Failed to load leaderboard"
-    );
+      this.leaderboardText.setText(
+        "Failed to load leaderboard"
+      );
+
+      this.leaderboardText.setVisible(true);
+
+      return;
+    }
+
+
+    let text = "🏆 LEADERBOARD 🏆\n\n";
+
+    players.forEach((p, i) => {
+
+      text += `${i + 1}. ${p.username} - Level ${p.highest_level}\n`;
+
+    });
+
+    this.leaderboardText.setText(text);
 
     this.leaderboardText.setVisible(true);
 
-    return;
+    this.time.delayedCall(4000, () => {
+
+      this.leaderboardText.setVisible(false);
+
+    });
   }
-
-  
-  let text = "🏆 LEADERBOARD 🏆\n\n";
-
-  players.forEach((p, i) => {
-
-    text += `${i + 1}. ${p.username} - Level ${p.highest_level}\n`;
-
-  });
-
-  this.leaderboardText.setText(text);
-
-  this.leaderboardText.setVisible(true);
-
-  this.time.delayedCall(4000, () => {
-
-    this.leaderboardText.setVisible(false);
-
-  });
-}
 }
 
 async function loginUser() {

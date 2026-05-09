@@ -1,110 +1,253 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Emoji Buster</title>
-    <link rel="icon" type="image/x-icon" href="/assets/favi.png">
-    <meta property="og:title" content="Emoji Buster Play Now">
-    <meta property="og:description" content="The Most Viral Emoji Buster Game Out There!">
+  <meta charset="UTF-8" />
+  <title>Emoji Buster</title>
+  <link rel="icon" type="image/png" href="assets/favi.png" />
 
-    <meta property="og:type" content="game" />
-    <script async src="https://www.googletagmanager.com/gtag/js"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
+  <meta property="og:title"       content="Emoji Buster — Play Now" />
+  <meta property="og:description" content="The most viral Emoji Buster game!" />
+  <meta property="og:type"        content="game" />
 
-        function gtag() {
-            dataLayer.push(arguments);
-        }
-        gtag('js', new Date());
+  <!-- Fully responsive on every device -->
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
-        gtag('config', '');
-        var ANALYTICS_ENABLED = false;
-    </script>
+  <!-- Google Analytics (fill in your ID) -->
+  <script async src="https://www.googletagmanager.com/gtag/js"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag("js", new Date());
+    gtag("config", ""); // ← paste your GA measurement ID here
+  </script>
 
-    <style type="text/css">
-        body {
-            margin: 0;
-            background: #101419;
-            overflow: hidden;
-            font-family: Arial;
-        }
+  <style>
+    /* ── Reset & Base ─────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        canvas {
-            display: block;
-            margin: 0;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
+    html, body {
+      width: 100%; height: 100%;
+      background: #0b0f14;
+      overflow: hidden;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: none;
+    }
 
+    /* Phaser canvas — centered and scaled by Phaser itself */
+    canvas {
+      display: block;
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      /* Crisp pixel rendering on every browser */
+      image-rendering: pixelated;
+      image-rendering: -moz-crisp-edges;
+      image-rendering: crisp-edges;
+    }
 
+    /* ── Login overlay ────────────────────── */
+    #login-container {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(160deg, rgba(16,20,25,0.97) 0%, rgba(8,12,18,0.99) 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 16px;
+    }
 
-        #login-container {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 999;
-        }
+    .login-box {
+      width: 100%;
+      max-width: 360px;
+      background: #1a2030;
+      border: 1px solid #2a3550;
+      padding: clamp(24px, 6vw, 40px);
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(212,255,113,0.08);
+      animation: popIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
 
-        .login-box {
-            background: #1d232b;
-            padding: 30px;
-            border-radius: 12px;
-            width: 300px;
-            text-align: center;
-        }
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.88) translateY(20px); }
+      to   { opacity: 1; transform: scale(1)    translateY(0);    }
+    }
 
-        .login-box h2 {
-            color: white;
-        }
+    .login-logo {
+      font-size: clamp(40px, 12vw, 64px);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
 
-        .login-box input {
-            width: 100%;
-            padding: 12px;
-            margin-top: 10px;
-            border: none;
-            border-radius: 8px;
-        }
+    .login-box h2 {
+      color: #d4ff71;
+      font-size: clamp(18px, 5vw, 24px);
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      margin-bottom: 6px;
+    }
 
-        .login-box button {
-            width: 100%;
-            margin-top: 15px;
-            padding: 12px;
-            border: none;
-            background: #d4ff71;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-    </style>
-    <link rel="stylesheet" type="text/css" href="fonts/fontLoader.css">
-    <script src="phaser.js"></script>
+    .login-box p.subtitle {
+      color: #7a8ca0;
+      font-size: clamp(12px, 3.5vw, 14px);
+      margin-bottom: 20px;
+    }
 
-    
+    .input-group {
+      position: relative;
+      margin-top: 14px;
+    }
 
+    .input-group span {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 16px;
+      pointer-events: none;
+    }
+
+    .login-box input {
+      width: 100%;
+      padding: 13px 14px 13px 40px;
+      background: #0f1720;
+      border: 1.5px solid #2a3550;
+      border-radius: 10px;
+      outline: none;
+      color: #fff;
+      font-size: clamp(14px, 4vw, 16px);
+      transition: border-color 0.2s;
+    }
+
+    .login-box input:focus {
+      border-color: #d4ff71;
+    }
+
+    .login-box input::placeholder {
+      color: #445566;
+    }
+
+    #login-error {
+      display: none;
+      color: #ff6b6b;
+      font-size: 13px;
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: rgba(255,107,107,0.1);
+      border-radius: 8px;
+    }
+
+    .login-box button {
+      width: 100%;
+      margin-top: 20px;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: #d4ff71;
+      color: #0b0f14;
+      font-size: clamp(15px, 4.5vw, 17px);
+      font-weight: 800;
+      cursor: pointer;
+      letter-spacing: 0.3px;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 18px rgba(212,255,113,0.35);
+    }
+
+    .login-box button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(212,255,113,0.5);
+    }
+
+    .login-box button:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .login-box button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .login-footer {
+      margin-top: 16px;
+      color: #3a4a5a;
+      font-size: 12px;
+    }
+
+    /* ── Responsive tweaks ────────────────── */
+
+    /* Very small screens (< 360px wide) */
+    @media (max-width: 360px) {
+      .login-box { padding: 20px 16px; }
+    }
+
+    /* Landscape phone */
+    @media (max-height: 500px) and (orientation: landscape) {
+      .login-logo { font-size: 32px; margin-bottom: 2px; }
+      .login-box h2 { font-size: 16px; margin-bottom: 2px; }
+      .login-box p.subtitle { display: none; }
+      .login-box { padding: 16px 20px; }
+      .input-group { margin-top: 8px; }
+      .login-box button { margin-top: 12px; padding: 11px; }
+    }
+
+    /* Tablet / desktop — game canvas is centered; login box stays clean */
+    @media (min-width: 768px) {
+      .login-box { max-width: 400px; }
+    }
+  </style>
+
+  <!-- Custom fonts (keep your original fontLoader if present) -->
+  <link rel="stylesheet" href="fonts/fontLoader.css" />
+
+  <!-- Phaser -->
+  <script src="phaser.js"></script>
 </head>
 
 <body>
-    <div id="login-container">
-        <div class="login-box">
-            <h2>Emoji Buster Login</h2>
-            
-            <input type="text" id="username" placeholder="Enter Username" />
-            
-            <input type="text" id="mobile" placeholder="Enter Mobile Number" />
-            
-            <button onclick="loginUser()">Start Game</button>
-        </div>
-    </div>
-    
-    <script src="game.js"></script>
 
+  <!-- ── Login overlay ──────────────────────── -->
+  <div id="login-container">
+    <div class="login-box">
+
+      <div class="login-logo">🎯</div>
+      <h2>Emoji Buster</h2>
+      <p class="subtitle">Enter your details to start playing</p>
+
+      <div class="input-group">
+        <span>👤</span>
+        <input type="text"
+               id="username"
+               placeholder="Username"
+               autocomplete="off"
+               autocorrect="off"
+               autocapitalize="off"
+               spellcheck="false" />
+      </div>
+
+      <div class="input-group">
+        <span>📱</span>
+        <input type="tel"
+               id="mobile"
+               placeholder="Mobile Number"
+               inputmode="numeric"
+               pattern="[0-9]*" />
+      </div>
+
+      <div id="login-error"></div>
+
+      <button id="loginBtn" onclick="loginUser()">
+        Start Game 🎮
+      </button>
+
+      <p class="login-footer">No password needed • scores saved automatically</p>
+    </div>
+  </div>
+
+  <!-- ── Game ───────────────────────────────── -->
+  <script src="game.js"></script>
 
 </body>
-
 </html>
