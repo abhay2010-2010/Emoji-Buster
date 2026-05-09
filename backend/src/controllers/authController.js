@@ -22,6 +22,7 @@ const login = async (req, res) => {
         mobile_number
       });
     }
+    
 
     const token = jwt.sign(
       {
