@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-const { userModel } = require("../models/User");
+const { userModel } = require("../models/user");
 
 
 
@@ -22,7 +22,7 @@ const login = async (req, res) => {
         mobile_number
       });
     }
-    
+
 
     const token = jwt.sign(
       {

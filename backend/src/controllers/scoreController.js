@@ -1,4 +1,4 @@
-const Score = require("../models/Score");
+const Score = require("../models/score");
 
 const submitScore = async (req, res) => {
   try {

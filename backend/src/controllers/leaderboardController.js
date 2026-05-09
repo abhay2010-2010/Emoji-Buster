@@ -1,5 +1,5 @@
-const Score = require("../models/Score");
-const User = require("../models/User");
+const Score = require("../models/score");
+const User = require("../models/user");
 
 const getLeaderboard = async (req, res) => {
   try {
