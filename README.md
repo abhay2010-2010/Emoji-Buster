@@ -12,6 +12,9 @@ https://emoji-burster.vercel.app/
 ## 🌐 Backend
 https://emoji-buster.onrender.com/
 
+## 🌐 API Testing
+http://localhost:5000/api-docs/
+
 ---
 
 # 📌 Features
@@ -94,7 +97,9 @@ emoji-buster/
 │   └── README.md
 │
 │
-├── backend/
+backend/
+│
+├── src/
 │   │
 │   ├── config/
 │   │   └── db.js
@@ -116,11 +121,14 @@ emoji-buster/
 │   │   ├── scoreRoutes.js
 │   │   └── leaderboardRoutes.js
 │   │
-│   ├── .env
-│   ├── server.js
-│   ├── package.json
-│   ├── package-lock.json
-│   └── README.md
+│   └── app.js
+│
+├── .env
+├── server.js
+├── swagger.js
+├── package.json
+├── package-lock.json
+└── README.md
 │
 │
 ├── .gitignore
